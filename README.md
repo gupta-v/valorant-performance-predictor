@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 # Valorant Performance Prediction
 
