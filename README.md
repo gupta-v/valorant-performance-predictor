@@ -1,4 +1,3 @@
-
 # Valorant Performance Prediction
 
 This project, **Valorant Performance Prediction**, is a machine learning application designed to predict player performance in Valorant based on a variety of in-game statistics. The prediction is powered by a Gradient Boosting Regressor model trained using scikit-learn.
