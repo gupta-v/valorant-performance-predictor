@@ -48,20 +48,44 @@ def clean_data(data):
         raise(e)
     
 
-def calculate_means(data):
-    # Calculate the means of numerical columns
-    means = {}
+# preprocessings.py
+
+def calculate_stats(data):
+    """
+    Calculate min, max, and mean for numerical columns, along with their data types.
+    """
+    stats = {}
     numerical_cols = [
         'damage_round', 'headshots', 'headshot_percent', 'aces', 'clutches',
-        'flawless', 'first_bloods',  'kills_round', 'most_kills',
+        'flawless', 'first_bloods', 'kills_round', 'most_kills',
         'score_round', 'wins', 'gun1_head', 'gun1_body', 'gun1_legs', 'gun1_kills',
         'gun2_head', 'gun2_body', 'gun2_legs', 'gun2_kills',
         'gun3_head', 'gun3_body', 'gun3_legs', 'gun3_kills',
-        'kills','assists','deaths'
+        'kills', 'assists', 'deaths'
     ]
+    
+    # Define which columns are floats
+    float_cols = {'headshot_percent', 'kills_round'}
+    
     for col in numerical_cols:
-        means[col] = data[col].mean()
-    return means
+        if col in float_cols:
+            col_type = 'float'
+            stats[col] = {
+                "mean": float(data[col].mean()),
+                "min": float(data[col].min()),
+                "max": float(data[col].max())
+            }
+        else:
+            col_type = 'int'
+            stats[col] = {
+                "mean": int(data[col].mean()),
+                "min": int(data[col].min()),
+                "max": int(data[col].max())
+            }
+        stats[col]['type'] = col_type
+    return stats
+
+
 
 def preprocess_new_data(new_data, label_encoders, scaler):
     new_data['kd_ratio'] = new_data['kills'] / new_data['deaths'].replace(0, np.nan)

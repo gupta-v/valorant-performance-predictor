@@ -1,8 +1,12 @@
+# stream-lit-app.py
+
 import streamlit as st
 import pandas as pd
+import numpy as np
+
 from preprocessings import load_data
 from preprocessings import clean_data
-from preprocessings import calculate_means
+from preprocessings import calculate_stats
 from preprocessings import preprocess_new_data
 from preprocessings import load_model
 from preprocessings import load_scaler
@@ -14,102 +18,126 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-
     
+    # Load and preprocess data
     raw_data = load_data()
     cleaned_data = clean_data(raw_data)
-    means = calculate_means(cleaned_data)
+    stats = calculate_stats(cleaned_data)  # Updated to use calculate_stats
     model = load_model()
     scaler = load_scaler()
     label_encoders = load_label_encoders()
-    st.header("Performance Predictor")
+    
+    st.header("Valorant Performance Predictor")
+    
     # Sidebar for numerical inputs using sliders
     with st.sidebar:
         st.header("Input Parameters")
+        
+        # Helper function to create sliders with dynamic min, max, and value
+        def create_slider(label, column):
+            col_type = stats[column]['type']
+            if col_type == 'int':
+                return st.slider(
+                    label,
+                    min_value=stats[column]['min'],
+                    max_value=stats[column]['max'],
+                    value=stats[column]['mean']
+                )
+            elif col_type == 'float':
+                return st.slider(
+                    label,
+                    min_value=stats[column]['min'],
+                    max_value=stats[column]['max'],
+                    value=stats[column]['mean'],
+                    step=0.1
+                )
+        
+        # Game Details
         st.subheader("Game Details")
-        damage_round = st.slider("Damage per Round", min_value=0, max_value=500, value=int(means['damage_round']))
-        headshots = st.slider("Headshots", min_value=0, max_value=5000, value=int(means['headshots']))
-        headshot_percent = st.slider("Headshot Percent", min_value=0.0, max_value=100.0, value=float(means['headshot_percent']))
-        aces = st.slider("Aces", min_value=0, max_value=100, value=int(means['aces']))
-        clutches = st.slider("Clutches", min_value=0, max_value=100, value=int(means['clutches']))
-        flawless = st.slider("Flawless Rounds", min_value=0, max_value=100, value=int(means['flawless']))
-        first_bloods = st.slider("First Bloods", min_value=0, max_value=1000, value=int(means['first_bloods']))
-        kills_round = st.slider("Kills per Round", min_value=0.0, max_value=10.0, value=float(means['kills_round']))
-        most_kills = st.slider("Most Kills in a Game", min_value=0, max_value=50, value=int(means['most_kills']))
-        score_round = st.slider("Score per Round", min_value=0, max_value=500, value=int(means['score_round']))
-        wins = st.slider("Wins", min_value=0, max_value=1000, value=int(means['wins']))
-
+        damage_round = create_slider("Damage per Round", 'damage_round')
+        headshots = create_slider("Headshots", 'headshots')
+        headshot_percent = create_slider("Headshot Percent", 'headshot_percent')
+        aces = create_slider("Aces", 'aces')
+        clutches = create_slider("Clutches", 'clutches')
+        flawless = create_slider("Flawless Rounds", 'flawless')
+        first_bloods = create_slider("First Bloods", 'first_bloods')
+        kills_round = create_slider("Kills per Round", 'kills_round')
+        most_kills = create_slider("Most Kills in a Game", 'most_kills')
+        score_round = create_slider("Score per Round", 'score_round')
+        wins = create_slider("Wins", 'wins')
+        
+        # Gun-1 Details
         st.subheader("Gun-1 Details")
-        gun1_head = st.sidebar.slider("Gun 1 Headshots", min_value=0, max_value=500, value=int(means['gun1_head']))
-        gun1_body = st.sidebar.slider("Gun 1 Body Shots", min_value=0, max_value=500, value=int(means['gun1_body']))
-        gun1_legs = st.sidebar.slider("Gun 1 Leg Shots", min_value=0, max_value=100, value=int(means['gun1_legs']))
-        gun1_kills = st.sidebar.slider("Gun 1 Kills", min_value=0, max_value=1000, value=int(means['gun1_kills']))
-
+        gun1_head = create_slider("Gun 1 Headshots", 'gun1_head')
+        gun1_body = create_slider("Gun 1 Body Shots", 'gun1_body')
+        gun1_legs = create_slider("Gun 1 Leg Shots", 'gun1_legs')
+        gun1_kills = create_slider("Gun 1 Kills", 'gun1_kills')
+        
+        # Gun-2 Details
         st.subheader("Gun-2 Details")
-        gun2_head = st.sidebar.slider("Gun 2 Headshots", min_value=0, max_value=500, value=int(means['gun2_head']))
-        gun2_body = st.sidebar.slider("Gun 2 Body Shots", min_value=0, max_value=500, value=int(means['gun2_body']))
-        gun2_legs = st.sidebar.slider("Gun 2 Leg Shots", min_value=0, max_value=100, value=int(means['gun2_legs']))
-        gun2_kills = st.sidebar.slider("Gun 2 Kills", min_value=0, max_value=1000, value=int(means['gun2_kills']))
-
+        gun2_head = create_slider("Gun 2 Headshots", 'gun2_head')
+        gun2_body = create_slider("Gun 2 Body Shots", 'gun2_body')
+        gun2_legs = create_slider("Gun 2 Leg Shots", 'gun2_legs')
+        gun2_kills = create_slider("Gun 2 Kills", 'gun2_kills')
+        
+        # Gun-3 Details
         st.subheader("Gun-3 Details")
-        gun3_head = st.sidebar.slider("Gun 3 Headshots", min_value=0, max_value=500, value=int(means['gun3_head']))
-        gun3_body = st.sidebar.slider("Gun 3 Body Shots", min_value=0, max_value=500, value=int(means['gun3_body']))
-        gun3_legs = st.sidebar.slider("Gun 3 Leg Shots", min_value=0, max_value=100, value=int(means['gun3_legs']))
-        gun3_kills = st.sidebar.slider("Gun 3 Kills", min_value=0, max_value=1000, value=int(means['gun3_kills']))
-
+        gun3_head = create_slider("Gun 3 Headshots", 'gun3_head')
+        gun3_body = create_slider("Gun 3 Body Shots", 'gun3_body')
+        gun3_legs = create_slider("Gun 3 Leg Shots", 'gun3_legs')
+        gun3_kills = create_slider("Gun 3 Kills", 'gun3_kills')
+        
+        # Game KDA Details
         st.subheader("Game KDA Details")
-        kills = st.sidebar.slider("Kills", min_value=0, max_value=1000, value=int(means['kills']))
-        deaths = st.sidebar.slider("Deaths", min_value=0, max_value=1000, value=int(means['deaths']))
-        assists = st.sidebar.slider("Assists", min_value=0, max_value=1000, value=int(means['assists']))
-
+        kills = create_slider("Kills", 'kills')
+        deaths = create_slider("Deaths", 'deaths')
+        assists = create_slider("Assists", 'assists')
+    
     # Input and Prediction columns
     input_column, prediction_column = st.columns([3, 1])
 
     with input_column:
-        st.subheader("Rating")
-        rating = st.selectbox("Select Rating", ['Radiant', 'Immortal 3', 'Immortal 2', 'Immortal 1', 'Diamond 3',
-                                                'Diamond 2', 'Diamond 1', 'Platinum 3', 'Platinum 2', 'Platinum 1',
-                                                'Gold 3', 'Gold 2', 'Gold 1', 'Silver 3', 'Silver 2','Silver 1',
-                                                'Bronze 3', 
-                                                'Unrated'  
-                                                ])
+        st.subheader("Additional Inputs")
+        # Rating selection
+        rating = st.selectbox(
+            "Select Rating",
+            [
+                'Radiant', 'Immortal 3', 'Immortal 2', 'Immortal 1', 'Diamond 3',
+                'Diamond 2', 'Diamond 1', 'Platinum 3', 'Platinum 2', 'Platinum 1',
+                'Gold 3', 'Gold 2', 'Gold 1', 'Silver 3', 'Silver 2','Silver 1',
+                'Bronze 3', 'Unrated'  
+            ]
+        )
 
-        # Dropdowns for categorical variables
+        # Agents selection
+        agents = [
+                'Phoenix', 'Jett', 'Reyna', 'Raze', 'Yoru', 'Neon',  # Duelists
+                'Brimstone', 'Omen', 'Viper', 'Astra',               # Controllers
+                'Sage', 'Cypher', 'Chamber',                         # Sentinels
+                'Sova', 'Breach', 'KAY/O', 'Skye'                    # Initiators
+                ]
+        
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Agent 1")
-            agent_1 = st.selectbox("Select Agent 1", ['Fade', 'Chamber', 'Yoru', 'Jett', 'Sage', 'KAY/O', 'Sova', 'Raze',
-                                                      'Omen', 'Breach', 'Reyna', 'Neon', 'Skye', 'Viper', 'Brimstone',
-                                                      'Phoenix', 'Astra', 'Killjoy', 'Cypher'])
-        with col1:
+            agent_1 = st.selectbox("Select Agent 1", agents, key='agent1')
             st.subheader("Agent 2")
-            agent_2 = st.selectbox("Select Agent 2", ['Fade', 'Chamber', 'Yoru', 'Jett', 'Sage', 'KAY/O', 'Sova', 'Raze',
-                                                      'Omen', 'Breach', 'Reyna', 'Neon', 'Skye', 'Viper', 'Brimstone',
-                                                      'Phoenix', 'Astra', 'Killjoy', 'Cypher'])
-        with col1:
+            agent_2 = st.selectbox("Select Agent 2", agents, key='agent2')
             st.subheader("Agent 3")
-            agent_3 = st.selectbox("Select Agent 3", ['Fade', 'Chamber', 'Yoru', 'Jett', 'Sage', 'KAY/O', 'Sova', 'Raze',
-                                                      'Omen', 'Breach', 'Reyna', 'Neon', 'Skye', 'Viper', 'Brimstone',
-                                                      'Phoenix', 'Astra', 'Killjoy', 'Cypher'])
-
+            agent_3 = st.selectbox("Select Agent 3", agents, key='agent3')
+        
         with col2:
+            # Guns selection
+            guns = ['Classic', 'Shorty', 'Frenzy', 'Ghost', 'Sheriff', 'Spectre', 'Bucky',
+                    'Judge', 'Bulldog',  'Guardian', 'Phantom', 'Vandal', 'Marshal', 'Operator', 
+                    'Ares', 'Odin']
             st.subheader("Gun 1")
-            gun1_name = st.selectbox("Select Gun 1", ['Classic', 'Shorty', 'Frenzy', 'Ghost', 'Sheriff', 'Spectre', 'Bucky',
-                                                      'Judge', 'Bulldog',  'Guardian', 'Phantom', 'Vandal', 'Marshal', 'Operator', 
-                                                      'Ares', 'Odin' 
-                                                      ])
-        with col2:
+            gun1_name = st.selectbox("Select Gun 1", guns, key='gun1_name')
             st.subheader("Gun 2")
-            gun2_name = st.selectbox("Select Gun 2", ['Classic', 'Shorty', 'Frenzy', 'Ghost', 'Sheriff', 'Spectre', 'Bucky',
-                                                      'Judge', 'Bulldog',  'Guardian', 'Phantom', 'Vandal', 'Marshal', 'Operator', 
-                                                      'Ares', 'Odin' 
-                                                      ])
-        with col2:
+            gun2_name = st.selectbox("Select Gun 2", guns, key='gun2_name')
             st.subheader("Gun 3")
-            gun3_name = st.selectbox("Select Gun 3", ['Classic', 'Shorty', 'Frenzy', 'Ghost', 'Sheriff', 'Spectre', 'Bucky',
-                                                      'Judge', 'Bulldog',  'Guardian', 'Phantom', 'Vandal', 'Marshal', 'Operator', 
-                                                      'Ares', 'Odin' 
-                                                      ])
+            gun3_name = st.selectbox("Select Gun 3", guns, key='gun3_name')
+
     # Prepare the input data for the model
     input_data = pd.DataFrame({
         'rating': [rating],
@@ -146,15 +174,18 @@ def main():
         'deaths': [deaths],
         'assists': [assists],
     })
+
     # Initialize prediction to none
     prediction = None
+
     # Prediction
     with input_column:
         if st.button("Predict"):
             new_data = input_data
             processed_data = preprocess_new_data(new_data, label_encoders, scaler)
             prediction = model.predict(processed_data)
-            
+            prediction = np.clip(prediction, 0, 100)
+    
     with prediction_column:
         prediction_container = st.container()
         with prediction_container:
@@ -162,23 +193,21 @@ def main():
             if prediction is not None:
                 win_percent = prediction[0]
                 if win_percent <= 66:
-                    st.error(f"Predicted Win Percentage: {prediction[0]:.2f}%")
-                elif win_percent > 66:
-                    st.success(f"Predicted Win Percentage: {prediction[0]:.2f}%")
+                    st.error(f"Predicted Win Percentage: {win_percent:.2f}%")
+                else:
+                    st.success(f"Predicted Win Percentage: {win_percent:.2f}%")
 
                 # Display motivational message based on prediction
-                win_percentage = prediction[0]
-                if win_percentage < 40:
+                if win_percent < 40:
                     st.error("Better luck next time! Give it your all and enjoy the game.")
-                elif 40 <= win_percentage <= 65:
+                elif 40 <= win_percent <= 65:
                     st.warning("Going well! Keep pushing hard you can do this. Dominate them!!")
-                elif 66 <= win_percentage <= 90:
+                elif 66 <= win_percent <= 90:
                     st.success("Well done! Just make sure you win and the game doesn't switch at the end.")
                 else:
                     st.success("Fantastic! You're on the verge of winning!")
             else:
-                 st.error("No prediction made yet, to generate Performance Prediction")
-                 st.error("Click 'Predict'")
+                st.info("No prediction made yet. Click 'Predict' to generate Performance Prediction.")
 
 if __name__ == "__main__":
     main()
