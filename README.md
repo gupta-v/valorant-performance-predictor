@@ -155,11 +155,18 @@ The data used in this project (val_stats.csv) includes various player statistics
 
 ### Model Evaluation
 
+- The model's performance was evaluated using the test set, and the results are as follows:
+
 - Metrics Used:
-  - Mean Squared Error (MSE)
-  - Root Mean Squared Error (RMSE)
-  - R² Score
-- The model's performance is evaluated on the test set, and the results are printed to the console.
+
+  - #### Mean Squared Error (MSE): 13.12
+    - MSE measures the average squared difference between the predicted and actual values. A lower MSE indicates that the model's predictions are close to the actual values.
+  - #### Root Mean Squared Error (RMSE): 3.62
+    - RMSE is the square root of MSE and provides the error magnitude in the same units as the target variable. A lower RMSE signifies better model accuracy.
+  - #### R² Score: 0.8945
+    - The R² score indicates that the model explains approximately 89.45% of the variance in the target variable, showcasing its strong predictive power.
+
+- The model's performance metrics are automatically evaluated and printed to the console when you run the training script i.e `model_training.py`.
 
 ## Future Enhancements
 
