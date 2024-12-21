@@ -1,6 +1,6 @@
-# Valorant Performance Prediction
+# Valorant Performance Predictor
 
-This project, **Valorant Performance Prediction**, is a machine learning application designed to predict player performance in Valorant based on a variety of in-game statistics. The prediction is powered by a Gradient Boosting Regressor model trained using scikit-learn.
+This project, **Valorant Performance Predictor**, is a machine learning application designed to predict player performance in Valorant based on a variety of in-game statistics. The prediction is powered by a Gradient Boosting Regressor model trained using scikit-learn.
 
 ## Table of Contents
 
@@ -38,7 +38,7 @@ The _Valorant Performance Prediction_ project is a powerful tool for Valorant pl
 ## File Structure
 
 ```plaintext
-valorant-performance-predict
+valorant-performance-predictor
 │
 ├── App
 │   ├── stream-lit-app.py       # Streamlit application script
